@@ -1,0 +1,12 @@
+schema: "classroom50/repo-config/v1"
+classroom: "data-tech-analytics"
+assignment: "final-project"
+owner:
+  username: "patellldiyaaa"
+  id: 228616634
+  accepted_at: "2026-09-22T15:40:28Z"
+source:
+  owner: "IT4063C-Fall2026"
+  owner_id: 320344006
+  repo: "Final-Project"
+  branch: "main"
