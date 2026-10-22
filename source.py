@@ -9,12 +9,6 @@
 # *What problem are you (or your stakeholder) trying to address?*
 # 📝 <!-- Answer Below -->
 
-# In[ ]:
-
-
-
-
-
 # This issue I would like to adress is how artifical intelligence is affecting job opportunities for recent college grads. AI is becoming more common in every industry and is changing the way companies operate. Some tasks can now be completed faster using AI, which would reduce the need for some entry level roles while creating demand for new skills. The topic is important becuase recent college grads are already entering a competitive job marker. Understanding how AI is changing employment opportunities could help students make better decisions about their careers and identify skills they need to develop before graduattion. 
 
 # ## Project Question
@@ -59,6 +53,9 @@
 
 # Start your code here
 
+
+# ## Exploratory Data Analysis 
+# 
 
 # ## Resources and References
 # *What resources and references have you used for this project?*
