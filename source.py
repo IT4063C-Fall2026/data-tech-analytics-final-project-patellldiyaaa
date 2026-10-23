@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # {Project Title}📝
+# # AI and the Entry-Level Job Market: Employment Trends, AI Exposure, and Skills for Recent College Graduates📝
 # 
 # ![Banner](./assets/banner.jpeg)
 
@@ -209,7 +209,7 @@ plt.show()
 # 
 # These results suggest that AI exposure is concentrated more heavily in occupations where work involves programming, data processing, analysis, communication, or repetitive information-based tasks.
 
-# ##### Analysis C: What skills are associate with occupations that have higher AI exposure?
+# ##### Analysis C: What skills are associated with occupations that have higher AI exposure?
 # 
 
 # In[27]:
@@ -320,11 +320,52 @@ plt.show()
 # 
 # These results suggest that high AI-exposure occupations often involve working with databases, data analysis, software development, and other technical systems. For recent college graduates, developing skills in these areas may be useful when preparing for careers where AI is already being used frequently.
 
+# ## Data Cleaning and Transformation
+# Before combining and analyzing the datasets, I checked for missing values, duplicate rows, outliers, and inconsistent data formats.
+# 
+# For the New York Fed unemployment dataset, I checked for missing values and duplicates. The dataset did not contain duplicate rows, and the main variables were already stored using appropriate data types. The Date column was stored as a datetime variable, while the unemployment variables were stored as numeric values.
+# 
+# For the Anthropic AI exposure dataset, I also checked for missing values and duplicate rows. The dataset contained 756 occupations, and the occupation codes were stored as text while observed AI exposure was stored as a numeric variable.
+# 
+# During the exploratory analysis, several occupations appeared as outliers because they had much higher AI exposure than most other occupations. I chose to keep these values because they represent real occupations rather than data-entry errors. Since one goal of this project is to identify occupations with unusually high AI exposure, removing these observations would remove important information from the analysis.
+# 
+# The main transformation involved combining the Anthropic and ONET datasets. The occupation codes were formatted differently in the two datasets. Anthropic used codes such as 11-1011, while ONET used codes such as 11-1011.00. I removed the decimal portion of the O*NET codes so that both datasets used the same format.
+# 
+# After standardizing the occupation codes, I used an inner merge to combine the Anthropic AI exposure data with the O*NET software skills data. The resulting dataset connects observed AI exposure with the software skills and software categories associated with each occupation.
+# 
+
+# In[47]:
+
+
+df_skills.isnull().sum()
+df_skills.duplicated().sum()
+
+
+# ## Machine Learning Plan
+# 
+# For the machine learning portion of this project, I plan to use a regression model to predict the observed AI exposure of an occupation. The target variable will be observed_exposure from the Anthropic Economic Index.
+# 
+# Possible predictor variables will come from the O*NET dataset, including software categories, technology requirements, and other occupation characteristics. I plan to begin with a basic regression model and then compare it with a Random Forest Regressor because the relationship between occupational characteristics and AI exposure may not be completely linear.
+# 
+# One challenge is that the O*NET dataset contains many categorical software and technology variables. These variables may need to be encoded or grouped before they can be used in a machine learning model. Another challenge is that some occupations have many more listed software skills than others, which could create imbalance in the data.
+# 
+# To address these challenges, I plan to select the most relevant features, convert categorical variables into numeric form when necessary, and split the data into training and testing sets. I will evaluate the model using measures such as Mean Absolute Error, Mean Squared Error, and R-squared.
+# 
+
+# ## Prior Feedback and Updates
+# I was unable to receive feedback for Checkpoint #1 because I completed the work locally but did not push the code to GitHub. Because of this, my instructor and peers were not able to review my first checkpoint.
+# 
+# For Checkpoint #2, I reviewed my original project idea and made several updates based on what I learned while exploring the datasets. Originally, I planned to directly compare AI adoption with unemployment among recent college graduates. After examining the data more closely, I realized that the New York Fed dataset measures overall unemployment trends for recent graduates, while the Anthropic and O*NET datasets provide occupation-level information.
+# 
+# Because these datasets measure different levels of the labor market, I decided not to treat changes in unemployment as evidence that AI directly caused job losses. Instead, I use the New York Fed data to examine overall employment trends for recent graduates, while the Anthropic and O*NET datasets are used to identify occupations with higher AI exposure and the software skills associated with those occupations.
+# 
+# These changes helped make the project more focused and better aligned with what the available data can actually support.
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[46]:
+# In[48]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
