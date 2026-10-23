@@ -13,18 +13,6 @@
 # 
 # How have unemployment trends for recent college graduates changed over time, which occupations have the highest observed AI exposure, and what software skills are associated with occupations that have higher AI exposure?
 
-# ## Project Question
-# *What specific question are you seeking to answer with this project?*
-# *This is not the same as the questions you ask to limit the scope of the project.*
-# 📝 <!-- Answer Below -->
-
-# How is increased AI use across occupations associated with employment outcomes for recent college graduates, and what skills are most common in occupations with higher AI use. 
-# How have unemployment rates among recent college grads changed as AI has become more common?
-# Which career fields have highest levels of AI use, and how are employment opportunities in that field?
-# Are entry-level job opportunities decreasing in occupations with higher AI use?
-# What tech and AI-related skills are employers looking for?
-# 
-
 # ## What would an answer look like?
 # *What is your hypothesized answer to your question?*
 # 📝 <!-- Answer Below -->
@@ -44,11 +32,6 @@
 # 
 # https://www.onetcenter.org/database.html
 # I will use O*Net to identify the skills and technologies required for different occupations. I will connect this information with the Anthropic dataset to compare the skills associated with jobs that have higher AI use. This will help me understand which technical skills may be useful for recent college grads. 
-
-# ## Approach and Analysis
-# *What is your approach to answering your project question?*
-# *How will you use the identified data to answer your project question?*
-# 📝 <!-- Start Discussing the project here; you can add as many code cells as you need -->
 
 # ## Approach and Analysis
 # 
@@ -238,7 +221,19 @@ df_skills["occ_code"] = (
 df_skills[["O*NET-SOC Code", "occ_code"]].head()
 
 
-# In[128]:
+# In[181]:
+
+
+before = len(df_skills)
+
+df_skills = df_skills.drop_duplicates(
+    subset=["occ_code", "Workplace Example"]
+)
+
+print(f"Removed {before - len(df_skills)} duplicate occupation-software pairs")
+
+
+# In[182]:
 
 
 df_merged = pd.merge(
@@ -251,7 +246,7 @@ df_merged = pd.merge(
 df_merged.head()
 
 
-# In[164]:
+# In[183]:
 
 
 print("High-AI occupations:", high_ai["occ_code"].nunique())
@@ -264,7 +259,7 @@ print(
 )
 
 
-# In[165]:
+# In[184]:
 
 
 ai_occupations = df_ai["occ_code"].nunique()
@@ -279,14 +274,14 @@ print(f"Match rate: {match_rate:.2f}%")
 
 # The Anthropic and O*NET datasets were combined using occupation codes. Because I used an inner merge, occupations without a matching O*NET software record were excluded. I checked the match rate to see how much of the original Anthropic occupation data was retained in the merged dataset.
 
-# In[166]:
+# In[185]:
 
 
 df_merged.shape
 df_merged[["occ_code", "title", "observed_exposure", "Workplace Example"]].head(10)
 
 
-# In[167]:
+# In[186]:
 
 
 threshold = df_ai["observed_exposure"].quantile(0.75)
@@ -296,7 +291,7 @@ high_ai = df_merged[
 ]
 
 
-# In[168]:
+# In[187]:
 
 
 top_skills = (
@@ -309,7 +304,7 @@ top_skills = (
 top_skills
 
 
-# In[169]:
+# In[188]:
 
 
 plt.figure(figsize=(10,6))
@@ -325,7 +320,7 @@ plt.show()
 
 # This visualization shows the most common individual software skills found in occupations with high AI exposure. Microsoft Excel and Microsoft Office are the most common, followed by PowerPoint, Word, and Outlook. This suggests that many occupations with higher AI exposure still rely heavily on common productivity and data-related software. Excel may be especially important because it is commonly used for organizing, analyzing, and working with data.
 
-# In[170]:
+# In[189]:
 
 
 top_categories = (
@@ -338,7 +333,7 @@ top_categories = (
 top_categories
 
 
-# In[ ]:
+# In[190]:
 
 
 plt.figure(figsize=(10,6))
@@ -352,13 +347,13 @@ plt.ylabel("Software Category")
 plt.show()
 
 
-# This visualization groups software skills into broader categories. Database user interface and query software is the most common category, followed by analytical or scientific software and development environment software. Other common categories include web development, ERP, financial analysis, and database management software.
+# This visualization shows the most common software categories used across high AI-exposure occupations. Office suite software and spreadsheet software appear most often, followed by presentation software, word processing software, and electronic mail software. Database query software is also common, along with internet browser, document management, ERP, and analytical software.
 # 
-# These results suggest that high AI-exposure occupations often involve working with databases, data analysis, software development, and other technical systems. For recent college graduates, developing skills in these areas may be useful when preparing for careers where AI is already being used frequently.
+# These results suggest that high AI-exposure occupations often rely on a mix of general productivity tools and more specialized business or data-related software. However, because many of these tools are common across a wide range of jobs, this chart shows which software categories are frequently used in high AI-exposure occupations rather than which categories are unique to them.
 
 # #### Correlation Analysis 
 
-# In[172]:
+# In[191]:
 
 
 sw_count = df_merged.groupby("occ_code").agg(
@@ -370,7 +365,7 @@ sw_count = df_merged.groupby("occ_code").agg(
 sw_count.corr()
 
 
-# In[173]:
+# In[192]:
 
 
 plt.figure(figsize=(8, 5))
@@ -416,12 +411,18 @@ plt.show()
 # 
 # 
 
-# In[174]:
+# In[193]:
 
 
 df_skills.isnull().sum()
 df_skills.duplicated().sum()
 
+
+# #### Data Issues and Limitations
+# 
+# Several limitations remain in the datasets. The New York Fed data is national and time-based, while the Anthropic and O*NET datasets provide occupation-level snapshots, so the datasets cannot be directly joined. The AI exposure measure also does not contain a time dimension, which means I cannot measure how AI exposure has changed over time.
+# 
+# Observed AI exposure is strongly right-skewed, with many occupations having very low exposure and a smaller number having much higher exposure. O*NET also lists many common software tools across a large number of occupations, so a tool appearing frequently does not necessarily mean it is unique to high AI-exposure jobs.
 
 # ## Machine Learning Plan
 # 
@@ -431,12 +432,11 @@ df_skills.duplicated().sum()
 # 
 # One challenge is that the O*NET dataset contains many categorical software and technology variables. These variables may need to be encoded or grouped before they can be used in a machine learning model. Another challenge is that some occupations have many more listed software skills than others, which could create imbalance in the data.
 # 
-# To address these challenges, I plan to select the most relevant features, convert categorical variables into numeric form when necessary, and split the data into training and testing sets. I will evaluate the model using measures such as Mean Absolute Error, Mean Squared Error, and R-squared.
+# Before building the model, I will transform the O*NET data so that there is one row per occupation, with features such as the number of software tools and counts of different software categories. Because the dataset contains only about 756 occupations, I plan to use cross-validation to evaluate model performance rather than relying only on a single train-test split.
 # 
-# Before building the model, I will transform the O*NET data so that there is one row per occupation, with features such as the number of software tools and counts of different software categories. Because the dataset contains only about 756 occupations, I plan to use cross-validation rather than relying on a single train-test split.
+# I will evaluate the models using measures such as Mean Absolute Error, Mean Squared Error, and R-squared. I will also compare the models against a simple baseline that predicts the average AI exposure.
 # 
-# I will also compare the models against a simple baseline that predicts the average AI exposure. Since the target variable is strongly right-skewed, I may test a square-root or log transformation. I will also watch for multicollinearity between predictors and may use Ridge or Lasso Regression to reduce the effect of highly related features.
-# 
+# Since the target variable is strongly right-skewed, I may test a square-root or log transformation. I will also watch for multicollinearity between predictors and may use Ridge or Lasso Regression to reduce the effect of highly related features.
 
 # ## Prior Feedback and Updates
 # I was unable to receive feedback for Checkpoint #1 because I completed the work locally but did not push the code to GitHub. Because of this, my instructor and peers were not able to review my first checkpoint.
@@ -451,7 +451,7 @@ df_skills.duplicated().sum()
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[175]:
+# In[194]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
