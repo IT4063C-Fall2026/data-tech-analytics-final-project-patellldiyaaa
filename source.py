@@ -16,10 +16,12 @@
 # *This is not the same as the questions you ask to limit the scope of the project.*
 # 📝 <!-- Answer Below -->
 
-# 1. How have unemployment rates among recent college grads changed as AI has become more common?
-# 2. Which career fields have highest levels of AI use, and how are employment opportunities in that field?
-# 3. Are entry-level job opportunities decreasing in occupations with higher AI use?
-# 4. What tech and AI-related skills are employers looking for?
+# How is increased AI use across occupations associated with employment outcomes for recent college graduates, and what skills are most common in occupations with higher AI use. 
+# How have unemployment rates among recent college grads changed as AI has become more common?
+# Which career fields have highest levels of AI use, and how are employment opportunities in that field?
+# Are entry-level job opportunities decreasing in occupations with higher AI use?
+# What tech and AI-related skills are employers looking for?
+# 
 
 # ## What would an answer look like?
 # *What is your hypothesized answer to your question?*
@@ -48,20 +50,281 @@
 
 # My apporach is to compare unemployment trends among recent college grads with AI adoption across different fields. I want to see if industries with higher AI use are experiecing changes in employment opportunities and what skills employers are looking for. I will use 3 datasets mentioned above. I plan to use python and sql to clean and organize data. I will connect the datasset using occupation codes and create visualization in tableau. My goal is to identify patterns that could help recent college grads understand how AI is chaning the job market and which skills they should focus on developing. However, a relationship between AI adoption and unemployment does not mean AI is directly causing unemployment. 
 
+# ## Exploratory Data Analysis 
+# 
+
+# #### Analysis A - Are recent graduates having more difficulty finding work?
+# 
+
 # In[1]:
 
 
-# Start your code here
+import pandas as pd
+
+df_unemployed = pd.read_excel(
+    "data/College-labor-data.xlsx",
+    sheet_name="unemployed",
+    header=10
+)
+
+df_unemployed.head()
 
 
-# ## Exploratory Data Analysis 
+# In[3]:
+
+
+df_unemployed.shape
+df_unemployed.info()
+df_unemployed.describe()
+df_unemployed.isnull().sum()
+df_unemployed.duplicated().sum()
+
+
+# In[5]:
+
+
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(12,6))
+
+plt.plot(
+    df_unemployed["Date"],
+    df_unemployed["Recent graduates"]
+)
+
+plt.title("Unemployment Rate of Recent College Graduates Over Time")
+plt.xlabel("Year")
+plt.ylabel("Unemployment Rate (%)")
+
+plt.show()
+
+
+# ##### Recent college graduate unemployment over time
 # 
+# This line graph shows how the unemployment rate for recent college graduates has changed over time. The rate has increased during several economic downturns, with the largest spike occurring around 2020. After decreasing again, unemployment among recent graduates has started to rise in the most recent years. This suggests that recent graduates may currently be facing a more difficult job market than they were a few years ago.
+
+# In[7]:
+
+
+plt.figure(figsize=(12,6))
+
+plt.plot(
+    df_unemployed["Date"],
+    df_unemployed["Recent graduates"],
+    label="Recent Graduates"
+)
+
+plt.plot(
+    df_unemployed["Date"],
+    df_unemployed["College graduates"],
+    label="College Graduates"
+)
+
+plt.title("Recent Graduate vs. College Graduate Unemployment")
+plt.xlabel("Year")
+plt.ylabel("Unemployment Rate (%)")
+plt.legend()
+
+plt.show()
+
+
+# ##### Recent Graduates vs. College Graduates
+# 
+# This graph compares the unemployment rate of recent college graduates with the unemployment rate of college graduates overall. Recent graduates consistently have a higher unemployment rate than the broader college graduate population. The difference becomes larger during periods of economic difficulty, especially around 2020. This suggests that recent graduates may be more vulnerable to changes in the job market.
+
+# ##### Analysis B - Which occupations have the highest AI exposure?
+# 
+
+# In[9]:
+
+
+df_ai = pd.read_csv("data/job_exposure.csv")
+
+df_ai.head()
+
+
+# In[11]:
+
+
+df_ai.shape
+df_ai.info()
+df_ai.describe()
+df_ai.isnull().sum()
+df_ai.duplicated().sum()
+
+
+# In[24]:
+
+
+import seaborn as sns
+
+top_ai = df_ai.sort_values(
+    "observed_exposure",
+    ascending=False
+).head(10)
+
+plt.figure(figsize=(10, 6))
+
+sns.barplot(
+    data=top_ai,
+    x="observed_exposure",
+    y="title"
+)
+
+plt.title("Top 10 Occupations by Observed AI Exposure")
+plt.xlabel("Observed AI Exposure")
+plt.ylabel("Occupation")
+
+plt.show()
+
+plt.figure(figsize=(8, 5))
+
+sns.histplot(
+    df_ai["observed_exposure"],
+    bins=20,
+    kde=True
+)
+
+plt.title("Distribution of AI Exposure Across Occupations")
+plt.xlabel("Observed AI Exposure")
+plt.ylabel("Number of Occupations")
+
+plt.show()
+
+plt.figure(figsize=(8, 4))
+
+sns.boxplot(
+    x=df_ai["observed_exposure"]
+)
+
+plt.title("Outliers in AI Exposure Across Occupations")
+plt.xlabel("Observed AI Exposure")
+
+plt.show()
+
+
+# The distribution of observed AI exposure is strongly right-skewed. Most occupations have relatively low levels of AI exposure, while a smaller number of occupations have much higher exposure. The boxplot also identifies many higher-exposure occupations as outliers. I chose to keep these values because they represent real occupations rather than data errors, and these occupations are especially relevant to the purpose of this project.
+# 
+# The top 10 occupations by observed AI exposure include several technical, administrative, analytical, and information-based jobs. Computer Programmers have the highest observed exposure in this dataset, followed by occupations such as Customer Service Representatives and Data Entry Keyers. Other highly exposed occupations include Market Research Analysts, Database Architects, Financial and Investment Analysts, and Software Quality Assurance Analysts and Testers.
+# 
+# These results suggest that AI exposure is concentrated more heavily in occupations where work involves programming, data processing, analysis, communication, or repetitive information-based tasks.
+
+# ##### Analysis C: What skills are associate with occupations that have higher AI exposure?
+# 
+
+# In[27]:
+
+
+df_skills = pd.read_csv("data/software_skills.csv")
+
+df_skills.head()
+
+
+# In[29]:
+
+
+df_skills["occ_code"] = (
+    df_skills["O*NET-SOC Code"]
+    .str.split(".")
+    .str[0]
+)
+
+df_skills[["O*NET-SOC Code", "occ_code"]].head()
+
+
+# In[31]:
+
+
+df_merged = pd.merge(
+    df_ai,
+    df_skills,
+    on="occ_code",
+    how="inner"
+)
+
+df_merged.head()
+
+
+# In[35]:
+
+
+df_merged.shape
+df_merged[["occ_code", "title", "observed_exposure", "Workplace Example"]].head(10)
+
+
+# In[37]:
+
+
+threshold = df_ai["observed_exposure"].quantile(0.75)
+
+high_ai = df_merged[
+    df_merged["observed_exposure"] >= threshold
+]
+
+
+# In[39]:
+
+
+top_skills = (
+    high_ai["Workplace Example"]
+    .value_counts()
+    .head(10)
+)
+
+top_skills
+
+
+# In[41]:
+
+
+plt.figure(figsize=(10,6))
+
+top_skills.sort_values().plot(kind="barh")
+
+plt.title("Most Common Software Skills in High AI-Exposure Occupations")
+plt.xlabel("Number of Occupations")
+plt.ylabel("Software Skill")
+
+plt.show()
+
+
+# This visualization shows the most common individual software skills found in occupations with high AI exposure. Microsoft Excel and Microsoft Office are the most common, followed by PowerPoint, Word, and Outlook. This suggests that many occupations with higher AI exposure still rely heavily on common productivity and data-related software. Excel may be especially important because it is commonly used for organizing, analyzing, and working with data.
+
+# In[43]:
+
+
+top_categories = (
+    high_ai["Element Name"]
+    .value_counts()
+    .head(10)
+)
+
+top_categories
+
+
+# In[45]:
+
+
+plt.figure(figsize=(10,6))
+
+top_categories.sort_values().plot(kind="barh")
+
+plt.title("Most Common Software Categories in High AI-Exposure Occupations")
+plt.xlabel("Number of Occurrences")
+plt.ylabel("Software Category")
+
+plt.show()
+
+
+# This visualization groups software skills into broader categories. Database user interface and query software is the most common category, followed by analytical or scientific software and development environment software. Other common categories include web development, ERP, financial analysis, and database management software.
+# 
+# These results suggest that high AI-exposure occupations often involve working with databases, data analysis, software development, and other technical systems. For recent college graduates, developing skills in these areas may be useful when preparing for careers where AI is already being used frequently.
 
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[1]:
+# In[46]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
