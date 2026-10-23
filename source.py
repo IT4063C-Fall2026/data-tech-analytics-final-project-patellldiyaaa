@@ -9,7 +9,9 @@
 # *What problem are you (or your stakeholder) trying to address?*
 # 📝 <!-- Answer Below -->
 
-# This issue I would like to adress is how artifical intelligence is affecting job opportunities for recent college grads. AI is becoming more common in every industry and is changing the way companies operate. Some tasks can now be completed faster using AI, which would reduce the need for some entry level roles while creating demand for new skills. The topic is important becuase recent college grads are already entering a competitive job marker. Understanding how AI is changing employment opportunities could help students make better decisions about their careers and identify skills they need to develop before graduattion. 
+# ## Project Question
+# 
+# How have unemployment trends for recent college graduates changed over time, which occupations have the highest observed AI exposure, and what software skills are associated with occupations that have higher AI exposure?
 
 # ## Project Question
 # *What specific question are you seeking to answer with this project?*
@@ -48,7 +50,11 @@
 # *How will you use the identified data to answer your project question?*
 # 📝 <!-- Start Discussing the project here; you can add as many code cells as you need -->
 
-# My apporach is to compare unemployment trends among recent college grads with AI adoption across different fields. I want to see if industries with higher AI use are experiecing changes in employment opportunities and what skills employers are looking for. I will use 3 datasets mentioned above. I plan to use python and sql to clean and organize data. I will connect the datasset using occupation codes and create visualization in tableau. My goal is to identify patterns that could help recent college grads understand how AI is chaning the job market and which skills they should focus on developing. However, a relationship between AI adoption and unemployment does not mean AI is directly causing unemployment. 
+# ## Approach and Analysis
+# 
+# My approach is to examine recent college graduate unemployment trends separately from occupation-level AI exposure and software skills. I use the New York Fed dataset to analyze unemployment trends for recent graduates over time. I use the Anthropic Economic Index to identify occupations with higher observed AI exposure, and I combine it with O*NET software-skills data using occupation codes.
+# 
+# I use Python and pandas to clean, merge, and analyze the datasets, along with Matplotlib and Seaborn for visualization. Because the unemployment data is national while the AI and O*NET data is occupation-level, I do not treat changes in unemployment as evidence that AI directly caused job losses.
 
 # ## Exploratory Data Analysis 
 # 
@@ -56,7 +62,7 @@
 # #### Analysis A - Are recent graduates having more difficulty finding work?
 # 
 
-# In[1]:
+# In[118]:
 
 
 import pandas as pd
@@ -70,7 +76,7 @@ df_unemployed = pd.read_excel(
 df_unemployed.head()
 
 
-# In[3]:
+# In[119]:
 
 
 df_unemployed.shape
@@ -80,7 +86,7 @@ df_unemployed.isnull().sum()
 df_unemployed.duplicated().sum()
 
 
-# In[5]:
+# In[120]:
 
 
 import matplotlib.pyplot as plt
@@ -103,7 +109,7 @@ plt.show()
 # 
 # This line graph shows how the unemployment rate for recent college graduates has changed over time. The rate has increased during several economic downturns, with the largest spike occurring around 2020. After decreasing again, unemployment among recent graduates has started to rise in the most recent years. This suggests that recent graduates may currently be facing a more difficult job market than they were a few years ago.
 
-# In[7]:
+# In[121]:
 
 
 plt.figure(figsize=(12,6))
@@ -135,7 +141,7 @@ plt.show()
 # ##### Analysis B - Which occupations have the highest AI exposure?
 # 
 
-# In[9]:
+# In[122]:
 
 
 df_ai = pd.read_csv("data/job_exposure.csv")
@@ -143,7 +149,7 @@ df_ai = pd.read_csv("data/job_exposure.csv")
 df_ai.head()
 
 
-# In[11]:
+# In[123]:
 
 
 df_ai.shape
@@ -153,7 +159,7 @@ df_ai.isnull().sum()
 df_ai.duplicated().sum()
 
 
-# In[24]:
+# In[124]:
 
 
 import seaborn as sns
@@ -212,7 +218,7 @@ plt.show()
 # ##### Analysis C: What skills are associated with occupations that have higher AI exposure?
 # 
 
-# In[27]:
+# In[125]:
 
 
 df_skills = pd.read_csv("data/software_skills.csv")
@@ -220,7 +226,7 @@ df_skills = pd.read_csv("data/software_skills.csv")
 df_skills.head()
 
 
-# In[29]:
+# In[126]:
 
 
 df_skills["occ_code"] = (
@@ -232,7 +238,7 @@ df_skills["occ_code"] = (
 df_skills[["O*NET-SOC Code", "occ_code"]].head()
 
 
-# In[31]:
+# In[128]:
 
 
 df_merged = pd.merge(
@@ -245,7 +251,20 @@ df_merged = pd.merge(
 df_merged.head()
 
 
-# In[55]:
+# In[164]:
+
+
+print("High-AI occupations:", high_ai["occ_code"].nunique())
+
+print(
+    "Duplicate occupation-software pairs:",
+    df_skills.duplicated(
+        subset=["occ_code", "Workplace Example"]
+    ).sum()
+)
+
+
+# In[165]:
 
 
 ai_occupations = df_ai["occ_code"].nunique()
@@ -260,14 +279,14 @@ print(f"Match rate: {match_rate:.2f}%")
 
 # The Anthropic and O*NET datasets were combined using occupation codes. Because I used an inner merge, occupations without a matching O*NET software record were excluded. I checked the match rate to see how much of the original Anthropic occupation data was retained in the merged dataset.
 
-# In[56]:
+# In[166]:
 
 
 df_merged.shape
 df_merged[["occ_code", "title", "observed_exposure", "Workplace Example"]].head(10)
 
 
-# In[57]:
+# In[167]:
 
 
 threshold = df_ai["observed_exposure"].quantile(0.75)
@@ -277,19 +296,20 @@ high_ai = df_merged[
 ]
 
 
-# In[58]:
+# In[168]:
 
 
 top_skills = (
-    high_ai["Workplace Example"]
-    .value_counts()
+    high_ai.groupby("Workplace Example")["occ_code"]
+    .nunique()
+    .sort_values(ascending=False)
     .head(10)
 )
 
 top_skills
 
 
-# In[59]:
+# In[169]:
 
 
 plt.figure(figsize=(10,6))
@@ -305,19 +325,20 @@ plt.show()
 
 # This visualization shows the most common individual software skills found in occupations with high AI exposure. Microsoft Excel and Microsoft Office are the most common, followed by PowerPoint, Word, and Outlook. This suggests that many occupations with higher AI exposure still rely heavily on common productivity and data-related software. Excel may be especially important because it is commonly used for organizing, analyzing, and working with data.
 
-# In[60]:
+# In[170]:
 
 
 top_categories = (
-    high_ai["Element Name"]
-    .value_counts()
+    high_ai.groupby("Element Name")["occ_code"]
+    .nunique()
+    .sort_values(ascending=False)
     .head(10)
 )
 
 top_categories
 
 
-# In[61]:
+# In[ ]:
 
 
 plt.figure(figsize=(10,6))
@@ -325,7 +346,7 @@ plt.figure(figsize=(10,6))
 top_categories.sort_values().plot(kind="barh")
 
 plt.title("Most Common Software Categories in High AI-Exposure Occupations")
-plt.xlabel("Number of Occurrences")
+plt.xlabel("Number of Occupations")
 plt.ylabel("Software Category")
 
 plt.show()
@@ -337,7 +358,7 @@ plt.show()
 
 # #### Correlation Analysis 
 
-# In[62]:
+# In[172]:
 
 
 sw_count = df_merged.groupby("occ_code").agg(
@@ -349,7 +370,7 @@ sw_count = df_merged.groupby("occ_code").agg(
 sw_count.corr()
 
 
-# In[63]:
+# In[173]:
 
 
 plt.figure(figsize=(8, 5))
@@ -370,9 +391,13 @@ plt.show()
 
 # ##### Correlation Analysis
 # 
-# I compared the number of unique software tools associated with each occupation to its observed AI exposure. The scatter plot shows that occupations with more software tools can have higher AI exposure, but the points are widely spread, so software variety alone does not appear to strongly explain AI exposure.
+# The correlation analysis shows a moderate positive relationship between software variety and observed AI exposure. This suggests that occupations that use a wider variety of software and software categories tend to have higher AI exposure.
 # 
-# This relationship is only an association and does not mean that using more software causes an occupation to have higher AI exposure.
+# However, the scatter plot still shows a large amount of variation, so software variety alone does not fully explain AI exposure. Other factors likely also influence how exposed an occupation is to AI.
+# 
+# The number of software tools and software categories are also strongly related to each other, which means they may contain similar information when used in the machine learning model.
+# 
+# These relationships show association only and do not mean that using more software causes higher AI exposure.
 
 # ## Data Cleaning and Transformation
 # Before combining and analyzing the datasets, I checked for missing values, duplicate rows, outliers, and inconsistent data formats.
@@ -387,8 +412,11 @@ plt.show()
 # 
 # After standardizing the occupation codes, I used an inner merge to combine the Anthropic AI exposure data with the O*NET software skills data. The resulting dataset connects observed AI exposure with the software skills and software categories associated with each occupation.
 # 
+# After converting the O*NET occupation codes to the same format as the Anthropic codes, some detailed O*NET occupation variants collapsed into the same occupation code. This caused the same software tool to appear more than once for an occupation. I removed duplicate occupation-software pairs before performing the final analysis so that each software tool was only counted once per occupation.
+# 
+# 
 
-# In[64]:
+# In[174]:
 
 
 df_skills.isnull().sum()
@@ -405,6 +433,10 @@ df_skills.duplicated().sum()
 # 
 # To address these challenges, I plan to select the most relevant features, convert categorical variables into numeric form when necessary, and split the data into training and testing sets. I will evaluate the model using measures such as Mean Absolute Error, Mean Squared Error, and R-squared.
 # 
+# Before building the model, I will transform the O*NET data so that there is one row per occupation, with features such as the number of software tools and counts of different software categories. Because the dataset contains only about 756 occupations, I plan to use cross-validation rather than relying on a single train-test split.
+# 
+# I will also compare the models against a simple baseline that predicts the average AI exposure. Since the target variable is strongly right-skewed, I may test a square-root or log transformation. I will also watch for multicollinearity between predictors and may use Ridge or Lasso Regression to reduce the effect of highly related features.
+# 
 
 # ## Prior Feedback and Updates
 # I was unable to receive feedback for Checkpoint #1 because I completed the work locally but did not push the code to GitHub. Because of this, my instructor and peers were not able to review my first checkpoint.
@@ -419,7 +451,7 @@ df_skills.duplicated().sum()
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[65]:
+# In[175]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
