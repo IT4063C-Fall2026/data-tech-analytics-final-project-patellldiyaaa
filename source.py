@@ -245,14 +245,29 @@ df_merged = pd.merge(
 df_merged.head()
 
 
-# In[35]:
+# In[55]:
+
+
+ai_occupations = df_ai["occ_code"].nunique()
+matched_occupations = df_merged["occ_code"].nunique()
+
+print("Anthropic occupations:", ai_occupations)
+print("Matched occupations:", matched_occupations)
+
+match_rate = matched_occupations / ai_occupations * 100
+print(f"Match rate: {match_rate:.2f}%")
+
+
+# The Anthropic and O*NET datasets were combined using occupation codes. Because I used an inner merge, occupations without a matching O*NET software record were excluded. I checked the match rate to see how much of the original Anthropic occupation data was retained in the merged dataset.
+
+# In[56]:
 
 
 df_merged.shape
 df_merged[["occ_code", "title", "observed_exposure", "Workplace Example"]].head(10)
 
 
-# In[37]:
+# In[57]:
 
 
 threshold = df_ai["observed_exposure"].quantile(0.75)
@@ -262,7 +277,7 @@ high_ai = df_merged[
 ]
 
 
-# In[39]:
+# In[58]:
 
 
 top_skills = (
@@ -274,7 +289,7 @@ top_skills = (
 top_skills
 
 
-# In[41]:
+# In[59]:
 
 
 plt.figure(figsize=(10,6))
@@ -290,7 +305,7 @@ plt.show()
 
 # This visualization shows the most common individual software skills found in occupations with high AI exposure. Microsoft Excel and Microsoft Office are the most common, followed by PowerPoint, Word, and Outlook. This suggests that many occupations with higher AI exposure still rely heavily on common productivity and data-related software. Excel may be especially important because it is commonly used for organizing, analyzing, and working with data.
 
-# In[43]:
+# In[60]:
 
 
 top_categories = (
@@ -302,7 +317,7 @@ top_categories = (
 top_categories
 
 
-# In[45]:
+# In[61]:
 
 
 plt.figure(figsize=(10,6))
@@ -320,6 +335,45 @@ plt.show()
 # 
 # These results suggest that high AI-exposure occupations often involve working with databases, data analysis, software development, and other technical systems. For recent college graduates, developing skills in these areas may be useful when preparing for careers where AI is already being used frequently.
 
+# #### Correlation Analysis 
+
+# In[62]:
+
+
+sw_count = df_merged.groupby("occ_code").agg(
+    n_software=("Workplace Example", "nunique"),
+    n_categories=("Element Name", "nunique"),
+    observed_exposure=("observed_exposure", "first")
+)
+
+sw_count.corr()
+
+
+# In[63]:
+
+
+plt.figure(figsize=(8, 5))
+
+sns.scatterplot(
+    data=sw_count,
+    x="n_software",
+    y="observed_exposure",
+    alpha=0.5
+)
+
+plt.title("Software Variety vs. Observed AI Exposure")
+plt.xlabel("Number of Unique Software Tools")
+plt.ylabel("Observed AI Exposure")
+
+plt.show()
+
+
+# ##### Correlation Analysis
+# 
+# I compared the number of unique software tools associated with each occupation to its observed AI exposure. The scatter plot shows that occupations with more software tools can have higher AI exposure, but the points are widely spread, so software variety alone does not appear to strongly explain AI exposure.
+# 
+# This relationship is only an association and does not mean that using more software causes an occupation to have higher AI exposure.
+
 # ## Data Cleaning and Transformation
 # Before combining and analyzing the datasets, I checked for missing values, duplicate rows, outliers, and inconsistent data formats.
 # 
@@ -334,7 +388,7 @@ plt.show()
 # After standardizing the occupation codes, I used an inner merge to combine the Anthropic AI exposure data with the O*NET software skills data. The resulting dataset connects observed AI exposure with the software skills and software categories associated with each occupation.
 # 
 
-# In[47]:
+# In[64]:
 
 
 df_skills.isnull().sum()
@@ -365,7 +419,7 @@ df_skills.duplicated().sum()
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[48]:
+# In[65]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
