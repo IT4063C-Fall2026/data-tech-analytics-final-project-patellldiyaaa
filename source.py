@@ -8,6 +8,11 @@
 # ## Topic
 # *What problem are you (or your stakeholder) trying to address?*
 # 📝 <!-- Answer Below -->
+# 
+# 
+# This project examines how the growing use of artificial intelligence relates to the job market for recent college graduates. I focus on unemployment trends for recent graduates, which occupations currently have higher observed AI exposure, and what software skills are commonly associated with those occupations.
+# 
+# The goal is not to prove that AI is causing unemployment, but to identify patterns that may help recent graduates better understand how the job market is changing and which skills may be useful to develop.
 
 # ## Project Question
 # 
@@ -16,8 +21,10 @@
 # ## What would an answer look like?
 # *What is your hypothesized answer to your question?*
 # 📝 <!-- Answer Below -->
-
-# I would use line graphs, bar charts, and scatter plots to compare unployment trends, AI use, and job opportunities across diffrent career fields. I could also create a scatter plot comparing AI use with changes in the job opportunities for different occupations. Finally, a bar chart of commonly requested tech skills would help show what employers are looking for. The goal would be to identify patterns between AI adoption and employment trends. 
+# 
+# I will use line graphs to examine unemployment trends for recent college graduates over time and compare recent graduates with college graduates overall. I will use bar charts, a histogram, and a boxplot to examine which occupations have higher AI exposure and how that exposure is distributed.
+# 
+# I will also analyze the software tools and software categories associated with occupations that have higher AI exposure. Finally, I will use a scatter plot and correlation analysis to examine whether occupations that use a wider variety of software also tend to have higher observed AI exposure.
 
 # ## Data Sources
 # *What 3 data sources have you identified for this project?*
@@ -246,7 +253,17 @@ df_merged = pd.merge(
 df_merged.head()
 
 
-# In[183]:
+# In[195]:
+
+
+threshold = df_ai["observed_exposure"].quantile(0.75)
+
+high_ai = df_merged[
+    df_merged["observed_exposure"] >= threshold
+]
+
+
+# In[196]:
 
 
 print("High-AI occupations:", high_ai["occ_code"].nunique())
@@ -259,7 +276,7 @@ print(
 )
 
 
-# In[184]:
+# In[197]:
 
 
 ai_occupations = df_ai["occ_code"].nunique()
@@ -272,26 +289,16 @@ match_rate = matched_occupations / ai_occupations * 100
 print(f"Match rate: {match_rate:.2f}%")
 
 
-# The Anthropic and O*NET datasets were combined using occupation codes. Because I used an inner merge, occupations without a matching O*NET software record were excluded. I checked the match rate to see how much of the original Anthropic occupation data was retained in the merged dataset.
+# All 756 occupations matched, so no data was lost in the merge.
 
-# In[185]:
+# In[198]:
 
 
 df_merged.shape
 df_merged[["occ_code", "title", "observed_exposure", "Workplace Example"]].head(10)
 
 
-# In[186]:
-
-
-threshold = df_ai["observed_exposure"].quantile(0.75)
-
-high_ai = df_merged[
-    df_merged["observed_exposure"] >= threshold
-]
-
-
-# In[187]:
+# In[200]:
 
 
 top_skills = (
@@ -304,7 +311,7 @@ top_skills = (
 top_skills
 
 
-# In[188]:
+# In[201]:
 
 
 plt.figure(figsize=(10,6))
@@ -320,7 +327,7 @@ plt.show()
 
 # This visualization shows the most common individual software skills found in occupations with high AI exposure. Microsoft Excel and Microsoft Office are the most common, followed by PowerPoint, Word, and Outlook. This suggests that many occupations with higher AI exposure still rely heavily on common productivity and data-related software. Excel may be especially important because it is commonly used for organizing, analyzing, and working with data.
 
-# In[189]:
+# In[202]:
 
 
 top_categories = (
@@ -333,7 +340,7 @@ top_categories = (
 top_categories
 
 
-# In[190]:
+# In[203]:
 
 
 plt.figure(figsize=(10,6))
@@ -353,7 +360,7 @@ plt.show()
 
 # #### Correlation Analysis 
 
-# In[191]:
+# In[204]:
 
 
 sw_count = df_merged.groupby("occ_code").agg(
@@ -365,7 +372,7 @@ sw_count = df_merged.groupby("occ_code").agg(
 sw_count.corr()
 
 
-# In[192]:
+# In[205]:
 
 
 plt.figure(figsize=(8, 5))
@@ -384,7 +391,7 @@ plt.ylabel("Observed AI Exposure")
 plt.show()
 
 
-# ##### Correlation Analysis
+# 
 # 
 # The correlation analysis shows a moderate positive relationship between software variety and observed AI exposure. This suggests that occupations that use a wider variety of software and software categories tend to have higher AI exposure.
 # 
@@ -401,28 +408,35 @@ plt.show()
 # 
 # For the Anthropic AI exposure dataset, I also checked for missing values and duplicate rows. The dataset contained 756 occupations, and the occupation codes were stored as text while observed AI exposure was stored as a numeric variable.
 # 
-# During the exploratory analysis, several occupations appeared as outliers because they had much higher AI exposure than most other occupations. I chose to keep these values because they represent real occupations rather than data-entry errors. Since one goal of this project is to identify occupations with unusually high AI exposure, removing these observations would remove important information from the analysis.
+# During the exploratory analysis, several occupations appeared as outliers because they had much higher AI exposure than most other occupations. I chose to keep these values because they represent real occupations rather than data errors. Since one goal of this project is to identify occupations with unusually high AI exposure, removing these observations would remove important information from the analysis.
 # 
-# The main transformation involved combining the Anthropic and ONET datasets. The occupation codes were formatted differently in the two datasets. Anthropic used codes such as 11-1011, while ONET used codes such as 11-1011.00. I removed the decimal portion of the O*NET codes so that both datasets used the same format.
+# The Anthropic and ONET datasets used different occupation code formats. Anthropic used codes such as 11-1011, while ONET used codes such as 11-1011.00. I removed the decimal portion from the O*NET occupation codes so that the codes matched between the two datasets.
 # 
-# After standardizing the occupation codes, I used an inner merge to combine the Anthropic AI exposure data with the O*NET software skills data. The resulting dataset connects observed AI exposure with the software skills and software categories associated with each occupation.
+# After standardizing the occupation codes, I checked for duplicate occupation-software pairs. No duplicate pairs were found in the cleaned dataset. For the software visualizations, I counted unique occupations rather than raw rows so that occupations with multiple software records would not be overcounted.
 # 
-# After converting the O*NET occupation codes to the same format as the Anthropic codes, some detailed O*NET occupation variants collapsed into the same occupation code. This caused the same software tool to appear more than once for an occupation. I removed duplicate occupation-software pairs before performing the final analysis so that each software tool was only counted once per occupation.
+# I then used an inner merge to combine the Anthropic AI exposure data with the ONET software skills data. All 756 Anthropic occupations successfully matched with ONET records, so no occupations were lost during the merge.
+# 
+# Data Issues and Limitations
+# 
+# Several limitations remain in the datasets. The New York Fed data is national and time-based, while the Anthropic and O*NET datasets provide occupation-level snapshots, so the datasets cannot be directly joined.
+# 
+# The AI exposure measure also does not contain a time dimension, which means I cannot measure how AI exposure has changed over time or directly connect changes in AI use to changes in recent graduate unemployment.
+# 
+# Observed AI exposure is strongly right-skewed, with many occupations having very low exposure and a smaller number having much higher exposure. I kept these higher values because they represent real occupations rather than data errors.
+# 
+# O*NET also lists many common software tools across a large number of occupations. Because of this, a software tool appearing frequently in high AI-exposure occupations does not necessarily mean that the tool is unique to those occupations. The software charts therefore show which tools are common among high AI-exposure jobs rather than which tools directly cause or uniquely identify high AI exposure.
 # 
 # 
 
-# In[193]:
+# In[1]:
 
 
-df_skills.isnull().sum()
-df_skills.duplicated().sum()
+print("Missing values in O*NET:")
+print(df_skills.isnull().sum())
 
+print("\nDuplicate rows in O*NET:")
+print(df_skills.duplicated().sum())
 
-# #### Data Issues and Limitations
-# 
-# Several limitations remain in the datasets. The New York Fed data is national and time-based, while the Anthropic and O*NET datasets provide occupation-level snapshots, so the datasets cannot be directly joined. The AI exposure measure also does not contain a time dimension, which means I cannot measure how AI exposure has changed over time.
-# 
-# Observed AI exposure is strongly right-skewed, with many occupations having very low exposure and a smaller number having much higher exposure. O*NET also lists many common software tools across a large number of occupations, so a tool appearing frequently does not necessarily mean it is unique to high AI-exposure jobs.
 
 # ## Machine Learning Plan
 # 
@@ -451,7 +465,7 @@ df_skills.duplicated().sum()
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[194]:
+# In[ ]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
